@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Budget App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            min-height: 600px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: normal;
+            margin-bottom: 20px;
+        }
+
+        .total-display {
+            background-color: red;
+            color: black;
+            font-size: 40px;
+            text-align: center;
+            padding: 15px;
+            margin: 0 auto 30px auto;
+            width: 150px;
+            border-radius: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 60px; /* Space for buttons */
+        }
+
+        th {
+            border-bottom: 2px solid black;
+            padding: 5px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        /* Column Widths to match image */
+        th:nth-child(1) { width: 15%; }
+        th:nth-child(2) { width: 40%; }
+        th:nth-child(3) { width: 45%; }
+
+        td {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 5px;
+        }
+
+        input {
+            width: 100%;
+            border: none;
+            font-size: 16px;
+            text-align: center;
+            background: transparent;
+            outline: none;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto; /* Pushes buttons to bottom */
+            padding-top: 20px;
+        }
+
+        button {
+            background-color: black;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>Food Budget</h1>
+
+        <div class="total-display" id="totalBox">0</div>
+
+        <table id="expenseTable">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+
+        <div class="button-container">
+            <button onclick="addRow()">ADD ROW</button>
+            <button onclick="saveData()">SAVE</button>
+        </div>
+    </div>
+
+    <script>
+        // Load data when app starts
+        window.onload = function() {
+            loadData();
+        };
+
+        function calculateTotal() {
+            let total = 0;
+            const amounts = document.querySelectorAll('.amount-input');
+            
+            amounts.forEach(input => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) {
+                    total += val;
+                }
+            });
+
+            // Update red box
+            document.getElementById('totalBox').innerText = total;
+        }
+
+        function addRow(dateVal = '', amountVal = '') {
+            const tableBody = document.getElementById('tableBody');
+            const rowCount = tableBody.rows.length + 1;
+            
+            const row = document.createElement('tr');
+            
+            // Get today's date formatted for input if no date provided
+            let defaultDate = dateVal;
+            if (!defaultDate) {
+                const today = new Date();
+                // Format YYYY-MM-DD for date inputs
+                defaultDate = today.toISOString().split('T')[0];
+            }
+
+            row.innerHTML = `
+                <td style="text-align:center;">${rowCount}</td>
+                <td><input type="date" class="date-input" value="${defaultDate}"></td>
+                <td><input type="number" class="amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()"></td>
+            `;
+
+            tableBody.appendChild(row);
+        }
+
+        function saveData() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            let data = [];
+
+            rows.forEach(row => {
+                const date = row.querySelector('.date-input').value;
+                const amount = row.querySelector('.amount-input').value;
+                if(date || amount) {
+                    data.push({ date, amount });
+                }
+            });
+
+            localStorage.setItem('foodBudgetApp', JSON.stringify(data));
+            alert('Data Saved!');
+        }
+
+        function loadData() {
+            const storedData = localStorage.getItem('foodBudgetApp');
+            const tableBody = document.getElementById('tableBody');
+            
+            // Clear existing rows
+            tableBody.innerHTML = '';
+
+            if (storedData) {
+                const data = JSON.parse(storedData);
+                if (data.length > 0) {
+                    data.forEach(item => {
+                        addRow(item.date, item.amount);
+                    });
+                } else {
+                    addRow(); // Add 1 empty row if data is empty array
+                }
+            } else {
+                addRow(); // Add 1 empty row by default
+            }
+            
+            calculateTotal(); // Recalculate total after loading
+        }
+    </script>
+</body>
+</html>
