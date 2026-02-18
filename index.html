@@ -3,55 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Budget App</title>
+    <title>Budget Multi-App</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4a90e2;       /* Soft Blue */
-            --accent-color: #ff6b6b;        /* Soft Red for Total */
-            --bg-color: #f0f2f5;            /* Light Grey Background */
-            --card-bg: #ffffff;             /* White Card */
-            --text-color: #333333;          /* Dark Grey Text */
-            --border-color: #e0e0e0;        /* Light Grey Border */
-            --hover-color: #f8f9fa;         /* Very Light Hover */
+            --primary: #4a90e2;
+            --active-tab: #333;
+            --inactive-tab: #e0e0e0;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --danger: #ff6b6b;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            display: flex;
-            justify-content: center;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 20px;
-            color: var(--text-color);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
         }
 
-        .app-container {
+        .app-wrapper {
             width: 100%;
             max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* --- TOP TAB BAR (SCROLLABLE) --- */
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            white-space: nowrap;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            /* Hide scrollbar for clean look */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .tabs-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .tab {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: var(--inactive-tab);
+            color: #666;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .tab.active {
+            background-color: var(--active-tab);
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .add-page-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
+        }
+
+        /* --- MAIN PAGE CARD --- */
+        .page-card {
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 15px; /* Modern rounded corners */
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Soft shadow */
-            min-height: 600px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            min-height: 500px;
             position: relative;
             display: flex;
             flex-direction: column;
-            box-sizing: border-box;
         }
 
-        h1 {
-            text-align: center;
-            font-weight: 600;
-            margin-bottom: 25px;
-            color: var(--text-color);
+        /* Editable Title Styling */
+        .title-input {
+            font-family: 'Poppins', sans-serif;
             font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            border-bottom: 2px solid transparent;
+            width: 100%;
+            margin-bottom: 20px;
+            color: #333;
+            background: transparent;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .title-input:focus {
+            border-bottom: 2px solid var(--primary);
         }
 
         .total-display-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         .total-display {
@@ -68,43 +138,30 @@
 
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-bottom: 80px; /* Space for fixed buttons */
+            border-collapse: collapse;
+            margin-bottom: 80px;
         }
 
         th {
-            padding: 12px 5px;
-            font-size: 14px;
-            font-weight: 500;
-            text-align: center;
+            padding: 10px 5px;
+            font-size: 13px;
             color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 2px solid #eee;
         }
 
         /* Column Widths */
-        th:nth-child(1) { width: 10%; } /* No. */
+        th:nth-child(1) { width: 10%; } /* No */
         th:nth-child(2) { width: 30%; } /* Date */
         th:nth-child(3) { width: 35%; } /* Item */
-        th:nth-child(4) { width: 25%; } /* Amount */
-        th:nth-child(5) { width: 0%; display: none; } /* Hidden Delete Col Header */
+        th:nth-child(4) { width: 25%; } /* Amt */
 
         td {
-            padding: 12px 5px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s;
-            position: relative; /* For absolute positioning of delete btn */
-        }
-        
-        /* Row Hover Effect */
-        tr:hover td {
-            background-color: var(--hover-color);
+            padding: 8px 2px;
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
         }
 
-        /* Input Styling */
-        input {
+        input.data-input {
             width: 100%;
             border: none;
             font-family: 'Poppins', sans-serif;
@@ -112,159 +169,247 @@
             text-align: center;
             background: transparent;
             outline: none;
-            color: var(--text-color);
-            padding: 5px 0;
+            color: #333;
         }
-
-        input::placeholder {
-            color: #bbb;
-        }
-
-        /* Remove Arrows/Spinners from Number Input */
-        /* Chrome, Safari, Edge, Opera */
+        
+        /* Remove number spinners */
         input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        /* Firefox */
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
 
-        /* Modern Outline Delete Icon */
+        /* Delete Icon (Hidden by default) */
         .delete-btn-container {
             position: absolute;
-            right: -10px; /* Pull it slightly outside the row area */
+            right: -8px;
             top: 50%;
             transform: translateY(-50%);
-            display: none;
+            display: none; /* Show on hover/active */
             background: white;
             border-radius: 50%;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
-            padding: 5px;
+            padding: 4px;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
             z-index: 10;
         }
 
         tr:hover .delete-btn-container,
-        tr:active .delete-btn-container,
         tr:focus-within .delete-btn-container {
-            display: block; /* Show on hover or when typing in row */
-        }
-
-        .delete-icon {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            stroke: #ff6b6b; /* Outline color */
-            stroke-width: 2;
-            fill: none;
             display: block;
         }
 
-        .delete-icon:hover {
-            stroke: #ff4747;
-            transform: scale(1.1);
+        .delete-icon {
+            width: 16px;
+            height: 16px;
+            stroke: var(--danger);
+            stroke-width: 2;
+            fill: none;
+            cursor: pointer;
+            display: block;
         }
 
-
-        /* Floating Action Buttons Container */
-        .button-container {
+        /* Bottom Buttons */
+        .bottom-actions {
             position: absolute;
             bottom: 20px;
             left: 20px;
             right: 20px;
             display: flex;
-            justify-content: space-between;
-            gap: 15px;
+            gap: 10px;
         }
 
-        button.main-btn {
+        .action-btn {
             flex: 1;
-            background-color: var(--text-color); /* Black/Dark Grey */
-            color: white;
+            padding: 12px;
             border: none;
-            padding: 14px 20px;
-            font-size: 14px;
+            border-radius: 10px;
             font-weight: 500;
-            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            letter-spacing: 0.5px;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        button.main-btn.save-btn {
-            background-color: var(--primary-color); /* Blue for Save */
-        }
-
-        button.main-btn:active {
-            transform: scale(0.98);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        .btn-add { background: #333; color: white; }
+        .btn-save { background: var(--primary); color: white; }
+        
+        .delete-page-link {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #999;
+            text-decoration: underline;
+            cursor: pointer;
         }
         
-        .row-num {
-            color: #888;
-            font-size: 12px;
-        }
+        .row-num { font-size: 12px; color: #aaa; }
 
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <h1>Food Budget</h1>
-
-        <div class="total-display-container">
-            <div class="total-display" id="totalBox">0</div>
+    <div class="app-wrapper">
+        
+        <div class="tabs-container" id="tabsContainer">
+            <button class="add-page-btn" onclick="createNewPage()">+</button>
         </div>
 
-        <table id="expenseTable">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Date</th>
-                    <th>Item</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                </tbody>
-        </table>
+        <div class="page-card">
+            
+            <input type="text" id="pageTitle" class="title-input" value="Food Budget" oninput="updatePageTitle()">
 
-        <div class="button-container">
-            <button class="main-btn" onclick="addNewRow()">+ Add Row</button>
-            <button class="main-btn save-btn" onclick="saveData()">Save</button>
+            <div class="total-display-container">
+                <div class="total-display" id="totalBox">0</div>
+            </div>
+
+            <table id="expenseTable">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Date</th>
+                        <th>Item</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+
+            <div class="bottom-actions">
+                <button class="action-btn btn-add" onclick="addNewRow()">+ Add Row</button>
+                <button class="action-btn btn-save" onclick="saveAllData()">Save All</button>
+            </div>
+            
+            <div class="delete-page-link" onclick="deleteCurrentPage()">Delete this Page</div>
         </div>
+
     </div>
 
     <script>
+        // --- STATE MANAGEMENT ---
+        let appData = [];
+        let activeIndex = 0;
+
         window.onload = function() {
-            loadData();
+            loadFromStorage();
         };
 
-        function calculateTotal() {
-            let total = 0;
-            const amounts = document.querySelectorAll('.amount-input');
-            amounts.forEach(input => {
-                const val = parseFloat(input.value);
-                if (!isNaN(val)) total += val;
-            });
-            document.getElementById('totalBox').innerText = total; // Removed toFixed(2) for whole numbers, add if needed
+        // --- CORE FUNCTIONS ---
+
+        function loadFromStorage() {
+            const stored = localStorage.getItem('budgetMultiApp');
+            if (stored) {
+                appData = JSON.parse(stored);
+            } else {
+                // Default first page if nothing saved
+                appData = [{ title: "Food Budget", entries: [] }];
+            }
+            renderTabs();
+            loadActivePage();
         }
 
-        function addNewRow(dateVal = '', itemVal = '', amountVal = '') {
+        function createNewPage() {
+            // Save current work first
+            saveCurrentPageToState(); 
+            
+            // Create new object
+            appData.push({
+                title: "New Page",
+                entries: []
+            });
+            
+            // Switch to new page
+            activeIndex = appData.length - 1;
+            
+            renderTabs();
+            loadActivePage();
+            saveAllData(false); // Silent save
+        }
+
+        function switchTab(index) {
+            saveCurrentPageToState(); // Save old tab data before switching
+            activeIndex = index;
+            renderTabs();
+            loadActivePage();
+        }
+
+        function updatePageTitle() {
+            const inputVal = document.getElementById('pageTitle').value;
+            appData[activeIndex].title = inputVal;
+            
+            // Update the text on the tab button immediately
+            const tabBtn = document.querySelectorAll('.tab')[activeIndex];
+            if(tabBtn) tabBtn.innerText = inputVal || "Untitled";
+        }
+
+        function deleteCurrentPage() {
+            if(appData.length <= 1) {
+                alert("You cannot delete the last page.");
+                return;
+            }
+            if(confirm("Are you sure you want to delete this entire page?")) {
+                appData.splice(activeIndex, 1);
+                activeIndex = 0; // Go back to first page
+                renderTabs();
+                loadActivePage();
+                saveAllData(false);
+            }
+        }
+
+        // --- RENDERING UI ---
+
+        function renderTabs() {
+            const container = document.getElementById('tabsContainer');
+            // Remove old tabs (keep the + button which is last)
+            const oldTabs = container.querySelectorAll('.tab');
+            oldTabs.forEach(t => t.remove());
+
+            // Insert new tabs before the + button
+            const addBtn = container.querySelector('.add-page-btn');
+
+            appData.forEach((page, index) => {
+                const btn = document.createElement('div');
+                btn.className = `tab ${index === activeIndex ? 'active' : ''}`;
+                btn.innerText = page.title || "Untitled";
+                btn.onclick = () => switchTab(index);
+                container.insertBefore(btn, addBtn);
+            });
+            
+            // Auto scroll to active tab
+            const activeTab = container.querySelector('.active');
+            if(activeTab) {
+                activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+        function loadActivePage() {
+            const page = appData[activeIndex];
+            
+            // Set Title
+            document.getElementById('pageTitle').value = page.title;
+            
+            // Clear Table
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            // Add Rows
+            if (page.entries.length > 0) {
+                page.entries.forEach(entry => renderRowHTML(entry.date, entry.item, entry.amount));
+            } else {
+                addNewRow(); // Add empty row if new page
+            }
+            
+            calculateTotal();
+        }
+
+        function renderRowHTML(dateVal = '', itemVal = '', amountVal = '') {
             const tableBody = document.getElementById('tableBody');
             const rowCount = tableBody.rows.length + 1;
             const row = document.createElement('tr');
             
-            let defaultDate = dateVal;
-            if (!defaultDate) {
+            // Default Date
+            if (!dateVal) {
                 const today = new Date();
-                defaultDate = today.toISOString().split('T')[0];
+                dateVal = today.toISOString().split('T')[0];
             }
 
-            // SVG Outline Delete Icon
             const deleteIconSVG = `
                 <svg class="delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"></polyline>
@@ -276,21 +421,21 @@
 
             row.innerHTML = `
                 <td class="row-num" style="text-align:center;">${rowCount}</td>
-                <td><input type="date" class="date-input" value="${defaultDate}"></td>
-                <td><input type="text" class="item-input" placeholder="Name" value="${itemVal}"></td>
+                <td><input type="date" class="data-input date-input" value="${dateVal}"></td>
+                <td><input type="text" class="data-input item-input" placeholder="Item" value="${itemVal}"></td>
                 <td style="position: relative;">
-                    <input type="number" class="amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()">
-                    <div class="delete-btn-container" onclick="deleteRow(this)">
-                        ${deleteIconSVG}
-                    </div>
+                    <input type="number" class="data-input amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()">
+                    <div class="delete-btn-container" onclick="deleteRow(this)">${deleteIconSVG}</div>
                 </td>
             `;
-
             tableBody.appendChild(row);
         }
 
+        function addNewRow() {
+            renderRowHTML();
+        }
+
         function deleteRow(btnContainer) {
-            // Traverse up: div -> td -> tr
             const row = btnContainer.parentNode.parentNode;
             row.remove();
             renumberRows();
@@ -304,9 +449,22 @@
             });
         }
 
-        function saveData() {
+        function calculateTotal() {
+            let total = 0;
+            const amounts = document.querySelectorAll('.amount-input');
+            amounts.forEach(input => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) total += val;
+            });
+            document.getElementById('totalBox').innerText = total;
+        }
+
+        // --- SAVING LOGIC ---
+
+        function saveCurrentPageToState() {
+            // Scrape the DOM table and update the appData array for current index
             const rows = document.querySelectorAll('#tableBody tr');
-            let data = [];
+            let currentEntries = [];
 
             rows.forEach(row => {
                 const date = row.querySelector('.date-input').value;
@@ -314,41 +472,29 @@
                 const amount = row.querySelector('.amount-input').value;
                 
                 if(date || item || amount) {
-                    data.push({ date, item, amount });
+                    currentEntries.push({ date, item, amount });
                 }
             });
-
-            localStorage.setItem('foodBudgetApp', JSON.stringify(data));
             
-            // Visual feedback for save
-            const saveBtn = document.querySelector('.save-btn');
-            const originalText = saveBtn.innerText;
-            saveBtn.innerText = "Saved!";
-            saveBtn.style.backgroundColor = "#2ecc71"; // Green color
-            setTimeout(() => {
-                saveBtn.innerText = originalText;
-                saveBtn.style.backgroundColor = ""; // Reset color
-            }, 1500);
+            // Update the main object
+            appData[activeIndex].title = document.getElementById('pageTitle').value;
+            appData[activeIndex].entries = currentEntries;
         }
 
-        function loadData() {
-            const storedData = localStorage.getItem('foodBudgetApp');
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
-
-            if (storedData) {
-                const data = JSON.parse(storedData);
-                if (data.length > 0) {
-                    data.forEach(item => {
-                        addNewRow(item.date, item.item, item.amount);
-                    });
-                } else {
-                    addNewRow(); 
-                }
-            } else {
-                addNewRow(); 
+        function saveAllData(showAlert = true) {
+            saveCurrentPageToState(); // Ensure current screen is captured
+            localStorage.setItem('budgetMultiApp', JSON.stringify(appData));
+            
+            if(showAlert) {
+                const saveBtn = document.querySelector('.btn-save');
+                const originalText = saveBtn.innerText;
+                saveBtn.innerText = "Saved!";
+                saveBtn.style.backgroundColor = "#2ecc71";
+                setTimeout(() => {
+                    saveBtn.innerText = originalText;
+                    saveBtn.style.backgroundColor = "";
+                }, 1500);
             }
-            calculateTotal(); 
         }
     </script>
 </body>
