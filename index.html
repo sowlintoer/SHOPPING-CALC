@@ -12,6 +12,10 @@
             --card-bg: #ffffff;
             --text-color: #333333;
             --danger-color: #ff6b6b;
+            --success-color: #2ecc71;
+            /* Gradients */
+            --gradient-green: linear-gradient(135deg, #42e695 0%, #3bb2b8 100%);
+            --gradient-red: linear-gradient(135deg, #ff8a8a 0%, #ff6b6b 100%);
         }
 
         body {
@@ -65,6 +69,7 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
+            padding-bottom: 40px; /* Space for bottom right text */
         }
 
         .budget-card:active {
@@ -78,13 +83,13 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            padding-right: 30px; /* Space for delete icon */
+            padding-right: 30px;
         }
 
         .card-total {
             font-size: 28px;
             font-weight: 600;
-            color: var(--primary-color);
+            color: var(--text-color);
         }
 
         .card-label {
@@ -93,7 +98,17 @@
             text-transform: uppercase;
         }
 
-        /* Dashboard Delete Button */
+        .card-planned {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 13px;
+            color: #666;
+            background-color: #f0f2f5;
+            padding: 4px 10px;
+            border-radius: 10px;
+        }
+
         .card-delete-btn {
             position: absolute;
             top: 15px;
@@ -104,7 +119,7 @@
             padding: 5px;
             border-radius: 50%;
             transition: background 0.2s;
-            z-index: 10; /* Ensure it's above the card click area */
+            z-index: 10;
         }
 
         .card-delete-btn:hover {
@@ -124,9 +139,9 @@
             stroke: var(--danger-color);
         }
 
-        /* --- SINGLE PAGE VIEW (HIDDEN BY DEFAULT) --- */
+        /* --- SINGLE PAGE VIEW --- */
         #single-page-view {
-            display: none; /* Hidden initially */
+            display: none;
             max-width: 500px;
             margin: 0 auto;
             background: var(--card-bg);
@@ -140,7 +155,7 @@
 
         .nav-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             margin-bottom: 20px;
         }
 
@@ -151,9 +166,16 @@
             cursor: pointer;
             padding: 0 10px 0 0;
             color: #555;
+            margin-top: 5px;
         }
 
-        /* Editable Title Styling */
+        .header-inputs {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .editable-title {
             font-size: 22px;
             font-weight: 600;
@@ -164,30 +186,69 @@
             outline: none;
             color: var(--text-color);
             background: transparent;
-            margin-bottom: 20px;
-            transition: border-color 0.3s;
+            margin-bottom: 5px;
         }
 
         .editable-title:focus {
             border-bottom: 2px solid var(--primary-color);
         }
 
-        .total-display-container {
+        .budget-limit-container {
+            font-size: 14px;
+            color: #666;
             display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .editable-limit {
+            border: none;
+            border-bottom: 1px dashed #ccc;
+            width: 80px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+            outline: none;
+        }
+
+        .total-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .exceeded-text {
+            color: #00008b; /* Dark Blue */
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            height: 20px; /* Preserve space */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .exceeded-text.visible {
+            opacity: 1;
         }
 
         .total-display {
-            background: linear-gradient(135deg, #ff8a8a 0%, #ff6b6b 100%);
+            background: var(--gradient-green); /* Default Green */
             color: white;
             font-size: 32px;
             font-weight: 600;
             text-align: center;
             padding: 15px 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
             min-width: 120px;
+            transition: background 0.5s ease;
+        }
+
+        /* Red Background when Over Budget */
+        .total-display.over-budget {
+            background: var(--gradient-red);
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
         }
 
         table {
@@ -209,7 +270,6 @@
             position: relative;
         }
 
-        /* Column Widths */
         th:nth-child(1) { width: 10%; } 
         th:nth-child(2) { width: 30%; } 
         th:nth-child(3) { width: 35%; } 
@@ -225,12 +285,10 @@
             background: transparent;
         }
 
-        /* Hide Number Spinners */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        /* Delete Button inside Rows */
         .delete-btn-container {
             position: absolute;
             right: -10px;
@@ -258,7 +316,6 @@
             cursor: pointer;
         }
 
-        /* Bottom Buttons */
         .button-container {
             position: absolute;
             bottom: 20px;
@@ -290,7 +347,7 @@
     <div id="dashboard-view">
         <div class="dashboard-header">
             <div class="dashboard-title">My Pages</div>
-            <button class="add-page-btn" onclick="createNewPage()">+ Add New Page</button>
+            <button class="add-page-btn" onclick="initiateNewPage()">+ Add New Page</button>
         </div>
         <div id="cards-container" class="grid-container">
             </div>
@@ -299,10 +356,16 @@
     <div id="single-page-view">
         <div class="nav-header">
             <button class="back-btn" onclick="goBackToDashboard()">&#8592;</button>
-            <input type="text" id="page-title-input" class="editable-title" placeholder="Page Title" onchange="updateTitleState()">
+            <div class="header-inputs">
+                <input type="text" id="page-title-input" class="editable-title" placeholder="Page Title">
+                <div class="budget-limit-container">
+                    Planned Budget: <input type="number" id="page-limit-input" class="editable-limit" placeholder="0" oninput="calculateTotal()">
+                </div>
+            </div>
         </div>
 
-        <div class="total-display-container">
+        <div class="total-section">
+            <div class="exceeded-text" id="exceededText">+0</div>
             <div class="total-display" id="totalBox">0</div>
         </div>
 
@@ -330,39 +393,24 @@
         let allPages = [];
         let currentPageId = null;
 
-        // Initialize App
         window.onload = function() {
             loadAllData();
         };
 
-        // --- DATA MANAGEMENT ---
-
         function loadAllData() {
             const storedData = localStorage.getItem('foodBudgetApp');
-            
             if (storedData) {
                 const parsed = JSON.parse(storedData);
-                
-                // MIGRATION CHECK: Check if old format (Array of rows) or new format (Array of pages)
+                // Simple migration check
                 if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].hasOwnProperty('amount') && !parsed[0].hasOwnProperty('rows')) {
-                    // This is OLD data. Convert it to a Page.
-                    allPages = [{
-                        id: Date.now(),
-                        title: "Food Budget",
-                        rows: parsed
-                    }];
-                    saveToLocalStorage(); // Save in new format immediately
+                    allPages = [{ id: Date.now(), title: "Food Budget", limit: 0, rows: parsed }];
+                    saveToLocalStorage();
                 } else if (Array.isArray(parsed)) {
-                    // This is NEW data
                     allPages = parsed;
                 }
             } else {
-                // No data found, start with one empty page
                 allPages = [];
-                // Optional: Start empty or with default page
-                if(allPages.length === 0) createNewPage("Food Budget", false);
             }
-
             renderDashboard();
         }
 
@@ -370,99 +418,87 @@
             localStorage.setItem('foodBudgetApp', JSON.stringify(allPages));
         }
 
-        // --- DASHBOARD LOGIC ---
-
         function renderDashboard() {
             const container = document.getElementById('cards-container');
-            container.innerHTML = ''; // Clear
+            container.innerHTML = ''; 
 
             allPages.forEach(page => {
-                // Calculate total for card preview
                 let total = 0;
-                if(page.rows){
-                    page.rows.forEach(r => total += (parseFloat(r.amount) || 0));
-                }
+                if(page.rows) page.rows.forEach(r => total += (parseFloat(r.amount) || 0));
 
                 const card = document.createElement('div');
                 card.className = 'budget-card';
-                // Add click listener to open page
                 card.onclick = () => openPage(page.id);
 
-                // SVG for Trash Icon
-                const trashIcon = `
-                    <svg class="card-delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                `;
+                const trashIcon = `<svg class="card-delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+                // Use the limit from data, default to 0
+                const limitDisplay = page.limit ? page.limit : 0;
 
                 card.innerHTML = `
-                    <button class="card-delete-btn" onclick="deletePage(${page.id}, event)">
-                        ${trashIcon}
-                    </button>
+                    <button class="card-delete-btn" onclick="deletePage(${page.id}, event)">${trashIcon}</button>
                     <div class="card-title">${page.title}</div>
                     <div class="card-label">Total Expense</div>
-                    <div class="card-total">${total}</div>
+                    <div class="card-total" style="color: ${total > limitDisplay && limitDisplay > 0 ? '#ff6b6b' : '#333'}">${total}</div>
+                    <div class="card-planned">Planned: ${limitDisplay}</div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function createNewPage(customTitle = "Title", openImmediately = true) {
+        // New Logic to ask for budget on creation
+        function initiateNewPage() {
+            const title = prompt("Enter Name for new Sheet:", "New Budget");
+            if (title === null) return; // Cancelled
+
+            let limit = prompt("Enter Planned Budget Amount:", "0");
+            if (limit === null) limit = 0; // Cancelled but proceed with 0
+
+            createNewPage(title, parseFloat(limit));
+        }
+
+        function createNewPage(title, limit) {
             const newPage = {
                 id: Date.now(),
-                title: customTitle,
-                rows: [] // Empty rows
+                title: title,
+                limit: limit,
+                rows: [] 
             };
             allPages.push(newPage);
             saveToLocalStorage();
             renderDashboard();
-            
-            if(openImmediately) {
-                openPage(newPage.id);
-            }
+            openPage(newPage.id);
         }
 
         function deletePage(id, event) {
-            // Stop the click from bubbling up to the card (which would open the page)
             event.stopPropagation();
-
             const pageIndex = allPages.findIndex(p => p.id === id);
             if (pageIndex === -1) return;
-
-            const pageTitle = allPages[pageIndex].title;
-            
-            // Confirm Dialog
-            if (confirm(`Are you sure you want to delete "${pageTitle}"? This cannot be undone.`)) {
-                allPages.splice(pageIndex, 1); // Remove from array
-                saveToLocalStorage(); // Save changes
-                renderDashboard(); // Re-render dashboard
+            if (confirm(`Delete "${allPages[pageIndex].title}"?`)) {
+                allPages.splice(pageIndex, 1);
+                saveToLocalStorage();
+                renderDashboard();
             }
         }
-
-        // --- SINGLE PAGE LOGIC ---
 
         function openPage(id) {
             currentPageId = id;
             const pageData = allPages.find(p => p.id === id);
-
             if(!pageData) return;
 
-            // Switch Views
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('single-page-view').style.display = 'flex';
 
-            // Set Title
             document.getElementById('page-title-input').value = pageData.title;
+            document.getElementById('page-limit-input').value = pageData.limit || 0;
 
-            // Render Rows
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
             
             if (pageData.rows && pageData.rows.length > 0) {
                 pageData.rows.forEach(row => renderRowHTML(row.date, row.item, row.amount));
             } else {
-                addNewRow(); // Add one empty row
+                addNewRow(); 
             }
 
             calculateTotal();
@@ -475,15 +511,6 @@
             currentPageId = null;
         }
 
-        function updateTitleState() {
-            if (!currentPageId) return;
-            const newTitle = document.getElementById('page-title-input').value;
-            const pageIndex = allPages.findIndex(p => p.id === currentPageId);
-            if (pageIndex > -1) {
-                allPages[pageIndex].title = newTitle;
-            }
-        }
-
         function calculateTotal() {
             let total = 0;
             const amounts = document.querySelectorAll('.amount-input');
@@ -491,7 +518,24 @@
                 const val = parseFloat(input.value);
                 if (!isNaN(val)) total += val;
             });
-            document.getElementById('totalBox').innerText = total;
+
+            const totalBox = document.getElementById('totalBox');
+            const exceededText = document.getElementById('exceededText');
+            const limitInput = document.getElementById('page-limit-input');
+            const limit = parseFloat(limitInput.value) || 0;
+
+            totalBox.innerText = total;
+
+            // Color Logic
+            if (limit > 0 && total > limit) {
+                totalBox.classList.add('over-budget'); // Turns Red
+                const diff = total - limit;
+                exceededText.innerText = `+${diff}`;
+                exceededText.classList.add('visible'); // Show Dark Blue Text
+            } else {
+                totalBox.classList.remove('over-budget'); // Stays Green
+                exceededText.classList.remove('visible'); // Hide Text
+            }
         }
 
         function addNewRow(dateVal = '', itemVal = '', amountVal = '') {
@@ -508,14 +552,7 @@
             const rowCount = tableBody.rows.length + 1;
             const row = document.createElement('tr');
 
-            const deleteIconSVG = `
-                <svg class="delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-            `;
+            const deleteIconSVG = `<svg class="delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
             row.innerHTML = `
                 <td class="row-num" style="text-align:center;">${rowCount}</td>
@@ -523,9 +560,7 @@
                 <td><input type="text" class="data-input item-input" placeholder="Name" value="${itemVal}"></td>
                 <td style="position: relative;">
                     <input type="number" class="data-input amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()">
-                    <div class="delete-btn-container" onclick="deleteRow(this)">
-                        ${deleteIconSVG}
-                    </div>
+                    <div class="delete-btn-container" onclick="deleteRow(this)">${deleteIconSVG}</div>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -548,7 +583,6 @@
         function saveCurrentPage() {
             if (!currentPageId) return;
 
-            // 1. Get current table data
             const rows = document.querySelectorAll('#tableBody tr');
             let newRowsData = [];
             rows.forEach(row => {
@@ -560,24 +594,22 @@
                 }
             });
 
-            // 2. Get current title
             const currentTitle = document.getElementById('page-title-input').value;
+            const currentLimit = document.getElementById('page-limit-input').value;
 
-            // 3. Update the global array
             const pageIndex = allPages.findIndex(p => p.id === currentPageId);
             if (pageIndex > -1) {
                 allPages[pageIndex].rows = newRowsData;
                 allPages[pageIndex].title = currentTitle;
+                allPages[pageIndex].limit = parseFloat(currentLimit) || 0;
             }
 
-            // 4. Persist to Local Storage
             saveToLocalStorage();
 
-            // 5. Feedback
             const saveBtn = document.querySelector('.save-btn');
             const originalText = saveBtn.innerText;
             saveBtn.innerText = "Saved!";
-            saveBtn.style.backgroundColor = "#2ecc71";
+            saveBtn.style.backgroundColor = "#27ae60"; // Darker Green
             setTimeout(() => {
                 saveBtn.innerText = originalText;
                 saveBtn.style.backgroundColor = "";
