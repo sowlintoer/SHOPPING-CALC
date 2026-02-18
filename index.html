@@ -4,22 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Budget App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #4a90e2;       /* Soft Blue */
+            --accent-color: #ff6b6b;        /* Soft Red for Total */
+            --bg-color: #f0f2f5;            /* Light Grey Background */
+            --card-bg: #ffffff;             /* White Card */
+            --text-color: #333333;          /* Dark Grey Text */
+            --border-color: #e0e0e0;        /* Light Grey Border */
+            --hover-color: #f8f9fa;         /* Very Light Hover */
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             display: flex;
             justify-content: center;
-            background-color: #f4f4f4;
+            background-color: var(--bg-color);
             margin: 0;
-            padding: 10px;
+            padding: 20px;
+            color: var(--text-color);
         }
 
         .app-container {
             width: 100%;
             max-width: 500px;
-            background: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px; /* Modern rounded corners */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Soft shadow */
             min-height: 600px;
             position: relative;
             display: flex;
@@ -29,99 +42,172 @@
 
         h1 {
             text-align: center;
-            font-weight: normal;
-            margin-bottom: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--text-color);
+            font-size: 24px;
+        }
+
+        .total-display-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
         }
 
         .total-display {
-            background-color: red;
-            color: black;
-            font-size: 40px;
+            background: linear-gradient(135deg, #ff8a8a 0%, #ff6b6b 100%);
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
             text-align: center;
-            padding: 15px;
-            margin: 0 auto 30px auto;
-            width: 150px;
-            border-radius: 2px;
+            padding: 15px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+            min-width: 120px;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 60px;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 80px; /* Space for fixed buttons */
         }
 
         th {
-            border-bottom: 2px solid black;
-            padding: 5px;
-            font-size: 16px;
+            padding: 12px 5px;
+            font-size: 14px;
+            font-weight: 500;
             text-align: center;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
         }
 
-        /* Adjusted Column Widths for 5 columns */
+        /* Column Widths */
         th:nth-child(1) { width: 10%; } /* No. */
-        th:nth-child(2) { width: 28%; } /* Date */
-        th:nth-child(3) { width: 32%; } /* Item */
-        th:nth-child(4) { width: 20%; } /* Amount */
-        th:nth-child(5) { width: 10%; } /* Delete Icon */
+        th:nth-child(2) { width: 30%; } /* Date */
+        th:nth-child(3) { width: 35%; } /* Item */
+        th:nth-child(4) { width: 25%; } /* Amount */
+        th:nth-child(5) { width: 0%; display: none; } /* Hidden Delete Col Header */
 
         td {
-            border-bottom: 1px solid #ccc;
-            padding: 10px 2px;
-            height: 40px; /* Fixed height to prevent jumping */
+            padding: 12px 5px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+            position: relative; /* For absolute positioning of delete btn */
+        }
+        
+        /* Row Hover Effect */
+        tr:hover td {
+            background-color: var(--hover-color);
         }
 
-        /* Highlight the selected row */
-        tr.selected {
-            background-color: #f9f9f9;
-        }
-
+        /* Input Styling */
         input {
             width: 100%;
             border: none;
+            font-family: 'Poppins', sans-serif;
             font-size: 14px;
             text-align: center;
             background: transparent;
             outline: none;
-            box-sizing: border-box;
+            color: var(--text-color);
+            padding: 5px 0;
         }
 
-        /* Delete Button Styling */
-        .delete-btn {
-            background: none;
-            border: none;
-            color: red;
-            font-size: 18px;
+        input::placeholder {
+            color: #bbb;
+        }
+
+        /* Remove Arrows/Spinners from Number Input */
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Modern Outline Delete Icon */
+        .delete-btn-container {
+            position: absolute;
+            right: -10px; /* Pull it slightly outside the row area */
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            background: white;
+            border-radius: 50%;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+            padding: 5px;
+            z-index: 10;
+        }
+
+        tr:hover .delete-btn-container,
+        tr:active .delete-btn-container,
+        tr:focus-within .delete-btn-container {
+            display: block; /* Show on hover or when typing in row */
+        }
+
+        .delete-icon {
+            width: 18px;
+            height: 18px;
             cursor: pointer;
-            display: none; /* Hidden by default */
-            width: 100%;
-        }
-
-        /* Only show delete button when row has 'selected' class */
-        tr.selected .delete-btn {
+            stroke: #ff6b6b; /* Outline color */
+            stroke-width: 2;
+            fill: none;
             display: block;
         }
 
+        .delete-icon:hover {
+            stroke: #ff4747;
+            transform: scale(1.1);
+        }
+
+
+        /* Floating Action Buttons Container */
         .button-container {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
             display: flex;
             justify-content: space-between;
-            margin-top: auto;
-            padding-top: 20px;
+            gap: 15px;
         }
 
         button.main-btn {
-            background-color: black;
+            flex: 1;
+            background-color: var(--text-color); /* Black/Dark Grey */
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 14px 20px;
             font-size: 14px;
-            border-radius: 20px;
+            font-weight: 500;
+            border-radius: 12px;
             cursor: pointer;
-            text-transform: uppercase;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            letter-spacing: 0.5px;
+        }
+
+        button.main-btn.save-btn {
+            background-color: var(--primary-color); /* Blue for Save */
         }
 
         button.main-btn:active {
-            opacity: 0.8;
+            transform: scale(0.98);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        
+        .row-num {
+            color: #888;
+            font-size: 12px;
+        }
+
     </style>
 </head>
 <body>
@@ -129,7 +215,9 @@
     <div class="app-container">
         <h1>Food Budget</h1>
 
-        <div class="total-display" id="totalBox">0</div>
+        <div class="total-display-container">
+            <div class="total-display" id="totalBox">0</div>
+        </div>
 
         <table id="expenseTable">
             <thead>
@@ -138,15 +226,15 @@
                     <th>Date</th>
                     <th>Item</th>
                     <th>Amount</th>
-                    <th></th> </tr>
+                </tr>
             </thead>
             <tbody id="tableBody">
                 </tbody>
         </table>
 
         <div class="button-container">
-            <button class="main-btn" onclick="addNewRow()">ADD ROW</button>
-            <button class="main-btn" onclick="saveData()">SAVE</button>
+            <button class="main-btn" onclick="addNewRow()">+ Add Row</button>
+            <button class="main-btn save-btn" onclick="saveData()">Save</button>
         </div>
     </div>
 
@@ -162,17 +250,7 @@
                 const val = parseFloat(input.value);
                 if (!isNaN(val)) total += val;
             });
-            document.getElementById('totalBox').innerText = total;
-        }
-
-        // Function to handle row selection (Show/Hide delete button)
-        function selectRow(rowElement) {
-            // Remove 'selected' class from all other rows
-            const allRows = document.querySelectorAll('#tableBody tr');
-            allRows.forEach(r => r.classList.remove('selected'));
-            
-            // Add 'selected' class to the clicked row
-            rowElement.classList.add('selected');
+            document.getElementById('totalBox').innerText = total; // Removed toFixed(2) for whole numbers, add if needed
         }
 
         function addNewRow(dateVal = '', itemVal = '', amountVal = '') {
@@ -180,46 +258,43 @@
             const rowCount = tableBody.rows.length + 1;
             const row = document.createElement('tr');
             
-            // Add click event to the entire row to trigger selection
-            row.onclick = function() { selectRow(this); };
-
             let defaultDate = dateVal;
             if (!defaultDate) {
                 const today = new Date();
                 defaultDate = today.toISOString().split('T')[0];
             }
 
+            // SVG Outline Delete Icon
+            const deleteIconSVG = `
+                <svg class="delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            `;
+
             row.innerHTML = `
                 <td class="row-num" style="text-align:center;">${rowCount}</td>
                 <td><input type="date" class="date-input" value="${defaultDate}"></td>
                 <td><input type="text" class="item-input" placeholder="Name" value="${itemVal}"></td>
-                <td><input type="number" class="amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()"></td>
-                <td style="text-align:center;">
-                    <button class="delete-btn" onclick="deleteRow(this)">🗑️</button>
+                <td style="position: relative;">
+                    <input type="number" class="amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()">
+                    <div class="delete-btn-container" onclick="deleteRow(this)">
+                        ${deleteIconSVG}
+                    </div>
                 </td>
             `;
 
             tableBody.appendChild(row);
-            
-            // Automatically select the new row
-            selectRow(row);
         }
 
-        function deleteRow(btn) {
-            // Get the row (tr) that contains the button
-            const row = btn.parentNode.parentNode;
-            
-            // Remove the row
+        function deleteRow(btnContainer) {
+            // Traverse up: div -> td -> tr
+            const row = btnContainer.parentNode.parentNode;
             row.remove();
-            
-            // Re-calculate the numbers (1, 2, 3...)
             renumberRows();
-            
-            // Re-calculate total money
             calculateTotal();
-            
-            // Stop the click from bubbling up (prevents selecting the deleted row)
-            event.stopPropagation();
         }
 
         function renumberRows() {
@@ -244,7 +319,16 @@
             });
 
             localStorage.setItem('foodBudgetApp', JSON.stringify(data));
-            alert('Data Saved!');
+            
+            // Visual feedback for save
+            const saveBtn = document.querySelector('.save-btn');
+            const originalText = saveBtn.innerText;
+            saveBtn.innerText = "Saved!";
+            saveBtn.style.backgroundColor = "#2ecc71"; // Green color
+            setTimeout(() => {
+                saveBtn.innerText = originalText;
+                saveBtn.style.backgroundColor = ""; // Reset color
+            }, 1500);
         }
 
         function loadData() {
