@@ -69,7 +69,7 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
-            padding-bottom: 40px; /* Space for bottom right text */
+            padding-bottom: 40px; 
         }
 
         .budget-card:active {
@@ -104,7 +104,7 @@
             right: 20px;
             font-size: 13px;
             color: #666;
-            background-color: #f0f2f5;
+            background-color: rgba(0,0,0,0.05); /* Semi-transparent for colored cards */
             padding: 4px 10px;
             border-radius: 10px;
         }
@@ -123,7 +123,7 @@
         }
 
         .card-delete-btn:hover {
-            background-color: #fee;
+            background-color: rgba(255, 0, 0, 0.1);
         }
 
         .card-delete-icon {
@@ -151,12 +151,14 @@
             min-height: 80vh;
             flex-direction: column;
             position: relative;
+            transition: background-color 0.3s ease; /* Smooth color transition */
         }
 
         .nav-header {
             display: flex;
             align-items: flex-start;
             margin-bottom: 20px;
+            position: relative;
         }
 
         .back-btn {
@@ -174,6 +176,32 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        /* Color Picker Styling */
+        .color-picker-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .color-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .color-dot.active {
+            border-color: #333;
+            transform: scale(1.1);
         }
 
         .editable-title {
@@ -209,6 +237,7 @@
             font-size: 14px;
             color: #333;
             outline: none;
+            background: transparent;
         }
 
         .total-section {
@@ -219,11 +248,11 @@
         }
 
         .exceeded-text {
-            color: #00008b; /* Dark Blue */
+            color: #00008b;
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 5px;
-            height: 20px; /* Preserve space */
+            height: 20px;
             opacity: 0;
             transition: opacity 0.3s;
         }
@@ -233,7 +262,7 @@
         }
 
         .total-display {
-            background: var(--gradient-green); /* Default Green */
+            background: var(--gradient-green);
             color: white;
             font-size: 32px;
             font-weight: 600;
@@ -245,7 +274,6 @@
             transition: background 0.5s ease;
         }
 
-        /* Red Background when Over Budget */
         .total-display.over-budget {
             background: var(--gradient-red);
             box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
@@ -260,13 +288,13 @@
         th {
             padding: 10px 5px;
             font-size: 14px;
-            color: #888;
-            border-bottom: 2px solid #e0e0e0;
+            color: #666; /* Slightly darker for better contrast on colors */
+            border-bottom: 2px solid rgba(0,0,0,0.1);
         }
 
         td {
             padding: 10px 5px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
             position: relative;
         }
 
@@ -295,7 +323,7 @@
             top: 50%;
             transform: translateY(-50%);
             display: none;
-            background: white;
+            background: rgba(255,255,255,0.8);
             border-radius: 50%;
             box-shadow: -2px 0 5px rgba(0,0,0,0.05);
             padding: 5px;
@@ -354,9 +382,19 @@
     </div>
 
     <div id="single-page-view">
+        
         <div class="nav-header">
             <button class="back-btn" onclick="goBackToDashboard()">&#8592;</button>
             <div class="header-inputs">
+                <div class="color-picker-container">
+                    <div class="color-dot" style="background: #ffffff;" onclick="changePageColor('#ffffff', this)" title="White"></div>
+                    <div class="color-dot" style="background: #e3f2fd;" onclick="changePageColor('#e3f2fd', this)" title="Soft Blue"></div>
+                    <div class="color-dot" style="background: #e8f5e9;" onclick="changePageColor('#e8f5e9', this)" title="Soft Green"></div>
+                    <div class="color-dot" style="background: #f3e5f5;" onclick="changePageColor('#f3e5f5', this)" title="Soft Purple"></div>
+                    <div class="color-dot" style="background: #fce4ec;" onclick="changePageColor('#fce4ec', this)" title="Soft Pink"></div>
+                    <div class="color-dot" style="background: #fff3e0;" onclick="changePageColor('#fff3e0', this)" title="Soft Peach"></div>
+                </div>
+
                 <input type="text" id="page-title-input" class="editable-title" placeholder="Page Title">
                 <div class="budget-limit-container">
                     Planned Budget: <input type="number" id="page-limit-input" class="editable-limit" placeholder="0" oninput="calculateTotal()">
@@ -392,6 +430,7 @@
         // Global State
         let allPages = [];
         let currentPageId = null;
+        let currentColor = "#ffffff"; // Default
 
         window.onload = function() {
             loadAllData();
@@ -401,9 +440,9 @@
             const storedData = localStorage.getItem('foodBudgetApp');
             if (storedData) {
                 const parsed = JSON.parse(storedData);
-                // Simple migration check
+                // Migration Check
                 if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].hasOwnProperty('amount') && !parsed[0].hasOwnProperty('rows')) {
-                    allPages = [{ id: Date.now(), title: "Food Budget", limit: 0, rows: parsed }];
+                    allPages = [{ id: Date.now(), title: "Food Budget", limit: 0, theme: "#ffffff", rows: parsed }];
                     saveToLocalStorage();
                 } else if (Array.isArray(parsed)) {
                     allPages = parsed;
@@ -428,11 +467,13 @@
 
                 const card = document.createElement('div');
                 card.className = 'budget-card';
+                
+                // Apply the saved background color to the card too!
+                card.style.backgroundColor = page.theme || '#ffffff';
+                
                 card.onclick = () => openPage(page.id);
 
                 const trashIcon = `<svg class="card-delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-
-                // Use the limit from data, default to 0
                 const limitDisplay = page.limit ? page.limit : 0;
 
                 card.innerHTML = `
@@ -446,13 +487,12 @@
             });
         }
 
-        // New Logic to ask for budget on creation
         function initiateNewPage() {
             const title = prompt("Enter Name for new Sheet:", "New Budget");
-            if (title === null) return; // Cancelled
+            if (title === null) return; 
 
             let limit = prompt("Enter Planned Budget Amount:", "0");
-            if (limit === null) limit = 0; // Cancelled but proceed with 0
+            if (limit === null) limit = 0; 
 
             createNewPage(title, parseFloat(limit));
         }
@@ -462,6 +502,7 @@
                 id: Date.now(),
                 title: title,
                 limit: limit,
+                theme: "#ffffff", // Default White
                 rows: [] 
             };
             allPages.push(newPage);
@@ -487,10 +528,16 @@
             if(!pageData) return;
 
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('single-page-view').style.display = 'flex';
+            const pageView = document.getElementById('single-page-view');
+            pageView.style.display = 'flex';
 
             document.getElementById('page-title-input').value = pageData.title;
             document.getElementById('page-limit-input').value = pageData.limit || 0;
+
+            // --- Apply Color ---
+            currentColor = pageData.theme || '#ffffff';
+            pageView.style.backgroundColor = currentColor;
+            updateActiveColorDot(currentColor);
 
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
@@ -502,6 +549,30 @@
             }
 
             calculateTotal();
+        }
+
+        // --- NEW: Color Picker Logic ---
+        function changePageColor(color, dotElement) {
+            currentColor = color;
+            document.getElementById('single-page-view').style.backgroundColor = color;
+            
+            // Visual feedback on the dots
+            const allDots = document.querySelectorAll('.color-dot');
+            allDots.forEach(d => d.classList.remove('active'));
+            if(dotElement) dotElement.classList.add('active');
+        }
+
+        function updateActiveColorDot(color) {
+            const allDots = document.querySelectorAll('.color-dot');
+            allDots.forEach(d => {
+                // Check if this dot's background color matches the saved hex
+                // (Browser converts hex to rgb, so we check approximate match or style attr)
+                d.classList.remove('active');
+                // Simple check based on the style attribute we set in HTML
+                if(d.getAttribute('style').includes(color)) {
+                    d.classList.add('active');
+                }
+            });
         }
 
         function goBackToDashboard() {
@@ -526,15 +597,14 @@
 
             totalBox.innerText = total;
 
-            // Color Logic
             if (limit > 0 && total > limit) {
-                totalBox.classList.add('over-budget'); // Turns Red
+                totalBox.classList.add('over-budget'); 
                 const diff = total - limit;
                 exceededText.innerText = `+${diff}`;
-                exceededText.classList.add('visible'); // Show Dark Blue Text
+                exceededText.classList.add('visible'); 
             } else {
-                totalBox.classList.remove('over-budget'); // Stays Green
-                exceededText.classList.remove('visible'); // Hide Text
+                totalBox.classList.remove('over-budget'); 
+                exceededText.classList.remove('visible'); 
             }
         }
 
@@ -602,6 +672,7 @@
                 allPages[pageIndex].rows = newRowsData;
                 allPages[pageIndex].title = currentTitle;
                 allPages[pageIndex].limit = parseFloat(currentLimit) || 0;
+                allPages[pageIndex].theme = currentColor; // Save the color
             }
 
             saveToLocalStorage();
@@ -609,7 +680,7 @@
             const saveBtn = document.querySelector('.save-btn');
             const originalText = saveBtn.innerText;
             saveBtn.innerText = "Saved!";
-            saveBtn.style.backgroundColor = "#27ae60"; // Darker Green
+            saveBtn.style.backgroundColor = "#27ae60"; 
             setTimeout(() => {
                 saveBtn.innerText = originalText;
                 saveBtn.style.backgroundColor = "";
