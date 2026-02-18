@@ -78,6 +78,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding-right: 30px; /* Space for delete icon */
         }
 
         .card-total {
@@ -90,6 +91,37 @@
             font-size: 12px;
             color: #888;
             text-transform: uppercase;
+        }
+
+        /* Dashboard Delete Button */
+        .card-delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+            z-index: 10; /* Ensure it's above the card click area */
+        }
+
+        .card-delete-btn:hover {
+            background-color: #fee;
+        }
+
+        .card-delete-icon {
+            width: 18px;
+            height: 18px;
+            stroke: #999;
+            fill: none;
+            stroke-width: 2;
+            transition: stroke 0.2s;
+        }
+
+        .card-delete-btn:hover .card-delete-icon {
+            stroke: var(--danger-color);
         }
 
         /* --- SINGLE PAGE VIEW (HIDDEN BY DEFAULT) --- */
@@ -198,7 +230,7 @@
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        /* Delete Button */
+        /* Delete Button inside Rows */
         .delete-btn-container {
             position: absolute;
             right: -10px;
@@ -327,7 +359,8 @@
             } else {
                 // No data found, start with one empty page
                 allPages = [];
-                createNewPage("Food Budget", false); // Create default without opening
+                // Optional: Start empty or with default page
+                if(allPages.length === 0) createNewPage("Food Budget", false);
             }
 
             renderDashboard();
@@ -352,9 +385,21 @@
 
                 const card = document.createElement('div');
                 card.className = 'budget-card';
+                // Add click listener to open page
                 card.onclick = () => openPage(page.id);
 
+                // SVG for Trash Icon
+                const trashIcon = `
+                    <svg class="card-delete-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                `;
+
                 card.innerHTML = `
+                    <button class="card-delete-btn" onclick="deletePage(${page.id}, event)">
+                        ${trashIcon}
+                    </button>
                     <div class="card-title">${page.title}</div>
                     <div class="card-label">Total Expense</div>
                     <div class="card-total">${total}</div>
@@ -375,6 +420,23 @@
             
             if(openImmediately) {
                 openPage(newPage.id);
+            }
+        }
+
+        function deletePage(id, event) {
+            // Stop the click from bubbling up to the card (which would open the page)
+            event.stopPropagation();
+
+            const pageIndex = allPages.findIndex(p => p.id === id);
+            if (pageIndex === -1) return;
+
+            const pageTitle = allPages[pageIndex].title;
+            
+            // Confirm Dialog
+            if (confirm(`Are you sure you want to delete "${pageTitle}"? This cannot be undone.`)) {
+                allPages.splice(pageIndex, 1); // Remove from array
+                saveToLocalStorage(); // Save changes
+                renderDashboard(); // Re-render dashboard
             }
         }
 
@@ -407,9 +469,6 @@
         }
 
         function goBackToDashboard() {
-            // Auto-save before leaving? Let's stick to the "Save" button requirement, 
-            // but refreshing the dashboard needs the latest memory state. 
-            // We will reload from the variable 'allPages'.
             document.getElementById('single-page-view').style.display = 'none';
             document.getElementById('dashboard-view').style.display = 'block';
             renderDashboard();
@@ -422,8 +481,6 @@
             const pageIndex = allPages.findIndex(p => p.id === currentPageId);
             if (pageIndex > -1) {
                 allPages[pageIndex].title = newTitle;
-                // We don't save to LocalStorage yet (user must click Save), 
-                // but we update memory so the dashboard reflects it if they click Save.
             }
         }
 
