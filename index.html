@@ -11,7 +11,7 @@
             justify-content: center;
             background-color: #f4f4f4;
             margin: 0;
-            padding: 10px; /* Slightly reduced for mobile screens */
+            padding: 10px;
         }
 
         .app-container {
@@ -47,7 +47,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 60px; /* Space for buttons */
+            margin-bottom: 60px;
         }
 
         th {
@@ -57,35 +57,58 @@
             text-align: center;
         }
 
-        /* Adjusted Column Widths to fit 4 columns on mobile */
+        /* Adjusted Column Widths for 5 columns */
         th:nth-child(1) { width: 10%; } /* No. */
-        th:nth-child(2) { width: 30%; } /* Date */
-        th:nth-child(3) { width: 35%; } /* Item */
-        th:nth-child(4) { width: 25%; } /* Amount */
+        th:nth-child(2) { width: 28%; } /* Date */
+        th:nth-child(3) { width: 32%; } /* Item */
+        th:nth-child(4) { width: 20%; } /* Amount */
+        th:nth-child(5) { width: 10%; } /* Delete Icon */
 
         td {
             border-bottom: 1px solid #ccc;
-            padding: 10px 2px; /* Tighter padding for mobile */
+            padding: 10px 2px;
+            height: 40px; /* Fixed height to prevent jumping */
+        }
+
+        /* Highlight the selected row */
+        tr.selected {
+            background-color: #f9f9f9;
         }
 
         input {
             width: 100%;
             border: none;
-            font-size: 14px; /* Slightly smaller text for fit */
+            font-size: 14px;
             text-align: center;
             background: transparent;
             outline: none;
-            box-sizing: border-box; /* Keeps inputs inside their cells */
+            box-sizing: border-box;
+        }
+
+        /* Delete Button Styling */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 18px;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+            width: 100%;
+        }
+
+        /* Only show delete button when row has 'selected' class */
+        tr.selected .delete-btn {
+            display: block;
         }
 
         .button-container {
             display: flex;
             justify-content: space-between;
-            margin-top: auto; /* Pushes buttons to bottom */
+            margin-top: auto;
             padding-top: 20px;
         }
 
-        button {
+        button.main-btn {
             background-color: black;
             color: white;
             border: none;
@@ -96,7 +119,7 @@
             text-transform: uppercase;
         }
 
-        button:active {
+        button.main-btn:active {
             opacity: 0.8;
         }
     </style>
@@ -115,20 +138,19 @@
                     <th>Date</th>
                     <th>Item</th>
                     <th>Amount</th>
-                </tr>
+                    <th></th> </tr>
             </thead>
             <tbody id="tableBody">
                 </tbody>
         </table>
 
         <div class="button-container">
-            <button onclick="addRow()">ADD ROW</button>
-            <button onclick="saveData()">SAVE</button>
+            <button class="main-btn" onclick="addNewRow()">ADD ROW</button>
+            <button class="main-btn" onclick="saveData()">SAVE</button>
         </div>
     </div>
 
     <script>
-        // Load data when app starts
         window.onload = function() {
             loadData();
         };
@@ -136,55 +158,88 @@
         function calculateTotal() {
             let total = 0;
             const amounts = document.querySelectorAll('.amount-input');
-            
             amounts.forEach(input => {
                 const val = parseFloat(input.value);
-                if (!isNaN(val)) {
-                    total += val;
-                }
+                if (!isNaN(val)) total += val;
             });
-
-            // Update red box
             document.getElementById('totalBox').innerText = total;
         }
 
-        // Updated addRow to include the Item value
-        function addRow(dateVal = '', itemVal = '', amountVal = '') {
+        // Function to handle row selection (Show/Hide delete button)
+        function selectRow(rowElement) {
+            // Remove 'selected' class from all other rows
+            const allRows = document.querySelectorAll('#tableBody tr');
+            allRows.forEach(r => r.classList.remove('selected'));
+            
+            // Add 'selected' class to the clicked row
+            rowElement.classList.add('selected');
+        }
+
+        function addNewRow(dateVal = '', itemVal = '', amountVal = '') {
             const tableBody = document.getElementById('tableBody');
             const rowCount = tableBody.rows.length + 1;
-            
             const row = document.createElement('tr');
             
+            // Add click event to the entire row to trigger selection
+            row.onclick = function() { selectRow(this); };
+
             let defaultDate = dateVal;
             if (!defaultDate) {
                 const today = new Date();
                 defaultDate = today.toISOString().split('T')[0];
             }
 
-            // Added the new Item input field here
             row.innerHTML = `
-                <td style="text-align:center;">${rowCount}</td>
+                <td class="row-num" style="text-align:center;">${rowCount}</td>
                 <td><input type="date" class="date-input" value="${defaultDate}"></td>
                 <td><input type="text" class="item-input" placeholder="Name" value="${itemVal}"></td>
                 <td><input type="number" class="amount-input" placeholder="0" value="${amountVal}" oninput="calculateTotal()"></td>
+                <td style="text-align:center;">
+                    <button class="delete-btn" onclick="deleteRow(this)">🗑️</button>
+                </td>
             `;
 
             tableBody.appendChild(row);
+            
+            // Automatically select the new row
+            selectRow(row);
         }
 
-        // Updated to save the Item text
+        function deleteRow(btn) {
+            // Get the row (tr) that contains the button
+            const row = btn.parentNode.parentNode;
+            
+            // Remove the row
+            row.remove();
+            
+            // Re-calculate the numbers (1, 2, 3...)
+            renumberRows();
+            
+            // Re-calculate total money
+            calculateTotal();
+            
+            // Stop the click from bubbling up (prevents selecting the deleted row)
+            event.stopPropagation();
+        }
+
+        function renumberRows() {
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('.row-num').innerText = index + 1;
+            });
+        }
+
         function saveData() {
             const rows = document.querySelectorAll('#tableBody tr');
             let data = [];
 
             rows.forEach(row => {
                 const date = row.querySelector('.date-input').value;
-                const item = row.querySelector('.item-input').value; // Get item value
+                const item = row.querySelector('.item-input').value;
                 const amount = row.querySelector('.amount-input').value;
                 
-                // Save if any of the fields are filled out
                 if(date || item || amount) {
-                    data.push({ date, item, amount }); 
+                    data.push({ date, item, amount });
                 }
             });
 
@@ -192,27 +247,23 @@
             alert('Data Saved!');
         }
 
-        // Updated to load the Item text
         function loadData() {
             const storedData = localStorage.getItem('foodBudgetApp');
             const tableBody = document.getElementById('tableBody');
-            
             tableBody.innerHTML = '';
 
             if (storedData) {
                 const data = JSON.parse(storedData);
                 if (data.length > 0) {
-                    data.forEach(rowItem => {
-                        // Pass date, item, and amount to addRow
-                        addRow(rowItem.date, rowItem.item, rowItem.amount);
+                    data.forEach(item => {
+                        addNewRow(item.date, item.item, item.amount);
                     });
                 } else {
-                    addRow(); 
+                    addNewRow(); 
                 }
             } else {
-                addRow(); 
+                addNewRow(); 
             }
-            
             calculateTotal(); 
         }
     </script>
